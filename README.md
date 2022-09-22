@@ -1,8 +1,14 @@
-### Hi there 👋
-I'm Kristina and I'm a genetic research scientist. 
+### I'm Kristina.  👋
 
-- 🔭 I’m currently working on Bioinformatics projects with BRN and NYU.
+🧬 I do bioinformatics. 
 
+### Repositories
+1. Stone | Stone Lab
+2. Flowers | NYU Master's Project
+3. training-requirements | BRN Repo
+4. NYU | NYU course assignments
+ 
+ 
 <!--
 **kkwock/kkwock** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 
@@ -15,4 +21,5 @@ Here are some ideas to get you started:
 - 📫 How to reach me: ...
 - 😄 Pronouns: ...
 - ⚡ Fun fact: ...
+- 🔭 I’m currently working on Bioinformatics projects with BRN and NYU.
 -->
