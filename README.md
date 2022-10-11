@@ -1,14 +1,20 @@
-### I'm Kristina.  👋
+### Hi, I'm Kristina 👋
 
-🧬 I do bioinformatics. 
+I'm a research scientist working in Bay Area/Silicon Valley, CA. 
 
-### Repositories
-1. Stone | Stone Lab
-2. Flowers | NYU Master's Project
-3. training-requirements | BRN Repo
-4. NYU | NYU course assignments
- 
- 
+#### Currently...
+- 🧬 M.S. Bioinformatics Candidate at NYU
+- 🌱 Learning Biostatistics
+- 👩🏻‍💻 Working on various projects
+- ☕ Drinking coffee...
+
+#### Bio
+- 👩🏻‍🔬 B.S. Microbiology at UCDavis & M.S. Molecular Biology at CSU East Bay
+- 🏢 Bioinformatic QC Tool Developer at **Guardant Health**
+- ⚙️ I use daily: `R`, `python`
+- 💬 Ask me about Gardening, Keyboards, or Beer/Wine. 
+- ⚡ Fun fact: I have a pet Hedgehog and Siberian Husky. 
+
 <!--
 **kkwock/kkwock** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 
