@@ -1,18 +1,17 @@
 ### Hi, I'm Kristina 👋
 
-I'm a research scientist working in Bay Area/Silicon Valley, CA. 
+I'm a research scientist working in **Bay Area, CA**. 
 
 #### Currently...
-- 🧬 M.S. Bioinformatics Candidate at NYU
-- 🌱 Learning Biostatistics
+- 🧬 **M.S. Bioinformatics** at NYU
+- 🌱 Learning **Biostatistics**
 - 👩🏻‍💻 Working on various projects
-- ☕ Drinking coffee...
+
 
 #### Bio
-- 👩🏻‍🔬 B.S. Microbiology at UCDavis & M.S. Molecular Biology at CSU East Bay
+- 👩🏻‍🔬 **B.S. Microbiology** at UCDavis & **M.S. Molecular Biology** at CSU East Bay
 - 🏢 Bioinformatic QC Tool Developer at **Guardant Health**
 - ⚙️ I use daily: `R`, `python`
-- 💬 Ask me about Gardening, Keyboards, or Beer/Wine. 
 - ⚡ Fun fact: I have a pet Hedgehog and Siberian Husky. 
 
 <!--
