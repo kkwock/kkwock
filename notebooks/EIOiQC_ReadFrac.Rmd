@@ -1,0 +1,93 @@
+---
+title: "EIOiQC_Thresholds"
+author: "Kristina Kwock"
+date: "5/23/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+source('/host_home/scripts/functions_g360.R')
+```
+
+```{r, inclulde=TRUE}
+dir = c("/ghds/groups/reagent_qc/g360/eio_qc/output_files/")
+
+runs <- c("1541586/HJ5V2BGXL_0321771511",
+          "1522667/HJ5W7BGXL_328185104",
+          "1504099/H2J25BGXL_320786806",
+          "1478892/H2VW7BGXL_320786806",
+          "1478909/H2VLYBGXL_5291",
+          "1471062/H2WJKBGXL_320255291",
+          "1468376/HNMG3BGXK_LGC269",
+          "1459955/H2KTMBGXL_119",
+          "1454182/H2W5KBGXK_168")
+tmv <- c("1342555/H2TF2BGXK_0293518863",
+         "1342575/H2VL2BGXK_0270129748",
+         "1350572/H2W2YBGXK_0287072638",
+         "1356789/H35YGBGXK_0293586201",
+         "1355227/H37VHBGXK_0217587082",
+         "1338694/H3CH7BGXK_0293518863",
+         "1340165/H2NMYBGXK_0270129748",
+         "1341849/H2YW3BGXK_0287072638",
+         "1344656/H33C5BGXK_0293586201",
+         "1347624/H2VWGBGXK_0217587082",
+         "1344719/H2TKHBGXK_0293518863",
+         "1351919/H2THKBGXK_0270129748",
+         "1353424/H33LNBGXK_0287072638",
+         "1358314/H2NW5BGXK_0293586201",
+         "1356573/H352GBGXK_0217587082" #E7 99nM
+)
+contrived <- c("1570756/HJ5G2BGXL_1511_contrived",
+               "1364570/HWN2NBGXJ_0293586201",
+               "1506167/H2GGMBGXL_8863O17_KK10")
+
+fail_seq <- c("1522854/HJ5WFBGXL_0321610774",
+              "1519933/HJ5CGBGXL_328185104",
+              "1378540/H7K5NBGXK_302",
+              "1362860/H33C3BGXK_298719261",
+              "1358137/H33VKBGXK_299536637",
+              "1358113/H2NMGBGXK_299547141",
+              "1345211/HMC77BGXH_293586201") # E17 and E35 ~ 40nM
+
+drops <- c("1356573/H352GBGXK_0217587082",
+           "1345211/HMC77BGXH_293586201",
+           "1570756/HJ5G2BGXL_1511_contrived")
+
+all <- c(runs, tmv, contrived, fail_seq, drops)
+```
+
+```{r, warning=FALSE, message=FALSE}
+output_list <- eio_stats(dir, all)
+```
+
+```{r, warning=FALSE, message=FALSE}
+library(plotly)
+plot_ly(
+  type = 'table',
+  header = list(
+    values = c(" ", names(output_list$stats)),
+  align = c('left', rep('center', ncol(output_list$stats))),
+  line = list(width = 1, color = 'black'),
+  font = list(family = "Arial", size = 12, color = "black")
+  ),
+  cells = list(
+    values = rbind(
+      rownames(output_list$stats), 
+      t(as.matrix(unname(output_list$stats)))
+    ),
+    align = c('left', rep('center', ncol(output_list$stats))),
+    line = list(color = "black", width = 1),
+    font = list(family = "Arial", size = 12, color = c("black"))
+  ))
+```
+
+```{r, warning=FALSE, message=FALSE}
+library(data.table)
+
+dir_list <- find_paths(dir, all)
+oligo_df <- count_oligos(dir_list)
+grouped <- melt(oligo_df, id='Sample_ID')
+colnames(grouped)[-1] <- c('FCID', 'ReadFrac')
+plot_ly(grouped, x= ~Sample_ID, y= ~ReadFrac, color= ~Sample_ID, type="box")
+```

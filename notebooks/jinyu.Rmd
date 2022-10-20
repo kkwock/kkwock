@@ -1,0 +1,54 @@
+source('getSampleMetrics.R')
+
+# Obtain SPK QC BIP Metrics
+# P360Q-669: "AHGM7GBGXK", "AHGMC7BGXK"
+
+```{r}
+fcid_list <- c("AHGM7GBGXK", "AHGMC7BGXK")  
+sample_metrics_ce_gciqr <- list()
+for (x in 1:length(fcid_list)){
+  fcid <- fcid_list[x]
+  outTable <-  getSampleMetrics(fcid)
+  sample_metrics_ce_gciqr <- rbind( sample_metrics_ce_gciqr, outTable)
+}
+sample_metrics_ce_gciqr
+dim(sample_metrics_ce_gciqr)
+
+sample_metrics_ce_gciqr_select <-  sample_metrics_ce_gciqr %>% 
+  mutate(FCID = fcid, run_sample_id =  sampleName )  %>%
+  select(FCID, run_sample_id, on_target_reads,total_reads, raw_reads,  mapd, sample_coverage_exceptions, sample_contamination_pct, sample_gc_bias, sample_non_singleton_families, sample_avg_family_size, sample_on_target_rate, sample_gender_status_mismatch,  sample_germline_contamination) %>% 
+  mutate(Batch_type =  "P360Q-669", FC_type =  paste(Batch_type, FCID, sep = ":")) %>%
+  unique()
+
+colnames(sample_metrics_ce_gciqr_select) <- c("FCID", "run_sample_id", "on_target_reads", "total_reads", "raw_reads", "MAPD", "Coverage_Exceptions", "Family_contamination", "GC_IQR", "Non_singleton_families","Average_family_size", "On_target_rate", "Gender_status_mismatch", "Germline_contamination", "Batch_type", "FC_type")
+sample_metrics_ce_gciqr_select
+
+
+sample_metrics_ce_gciqr_select_long <-  sample_metrics_ce_gciqr_select %>% 
+  gather(trait, value, c(on_target_reads:Germline_contamination)) %>% 
+  mutate(value = as.numeric(value)) 
+
+sample_metrics_ce_gciqr_select_long
+```
+## Plot the raw reads, total reads, and on target reads
+```{r,fig.width=20, fig.heigt=15, message=FALSE}
+traits <- c("on_target_reads", "total_reads", "raw_reads")
+sample_metrics_ce_gciqr_select_long_selected_traits <- sample_metrics_ce_gciqr_select_long %>% filter(trait %in% traits) %>% 
+  filter(Batch_type == "P360Q-669")
+sample_metrics_ce_gciqr_select_long_selected_traits
+sample_metrics_ce_gciqr_select_long_selected_traits$trait <- factor(sample_metrics_ce_gciqr_select_long_selected_traits$trait, levels = c("on_target_reads", "total_reads", "raw_reads"))
+
+reads_barplot <- ggplot(sample_metrics_ce_gciqr_select_long_selected_traits, aes(x = run_sample_id, y =value, fill = FC_type )) +
+  geom_bar(stat="identity")+
+  facet_wrap(FC_type ~ trait, nrow = 2, scales = 'free_x') +
+  scale_fill_manual(values=c("steelblue", "coral")) +
+  labs(title = "LDT50_P360Q-669", colour = "Sample Type") +
+  ylab("Reads value") +
+  xlab("Sample ID") +
+  theme_Publication() +
+  theme(legend.position = 'bottom',
+        axis.text = element_text(size = 20),
+        axis.title = element_text(size = 29),
+        axis.text.x = element_text(angle = 45, size = 10 , hjust = 1))
+reads_barplot
+```
