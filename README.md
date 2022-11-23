@@ -1,6 +1,6 @@
 ### Hi, I'm Kristina 👋
 
-I'm a research scientist working in **Bay Area, CA**. 
+I do science in **Bay Area, CA**. 
 
 #### Currently...
 - 🧬 **M.S. Bioinformatics** at NYU
