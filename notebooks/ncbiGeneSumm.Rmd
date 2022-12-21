@@ -35,10 +35,14 @@ summ$otheraliases
 ```
 
 ```{r}
+# Reading in the CSV file
 csv <- read.csv('../data/FPKM_full-table_all_rows.csv', header=T)
-
 df <- data.frame()
+
+# Create a list of gene names from gene_name column
 gene_list <- csv$gene_name
+
+# Looping through each name in the gene list and creating a new dataframe
 for(gene in gene_list){
   if(gene == '.'){
     temp <- data.frame('gene_name' = gene, 'glyma' = NA, 'desc' = NA)
@@ -49,5 +53,6 @@ for(gene in gene_list){
   df <- rbind(df, temp)
 }
 
+# Create CSV file of annotations
 write.csv(df, '2022Dec21_GlymaAnnotations.csv')
 ```
