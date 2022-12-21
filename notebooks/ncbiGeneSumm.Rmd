@@ -10,6 +10,7 @@ output: html_document
 # Function
 geneSummary <- function(x){
   library(rentrez)
+
   # searches through NCBI gene db
   r_search <- entrez_search(db="gene", term=x) 
   
@@ -31,4 +32,22 @@ summ$description
 ```{r}
 # GLYMA name
 summ$otheraliases
+```
+
+```{r}
+csv <- read.csv('../data/FPKM_full-table_all_rows.csv', header=T)
+
+df <- data.frame()
+gene_list <- csv$gene_name
+for(gene in gene_list){
+  if(gene == '.'){
+    temp <- data.frame('gene_name' = gene, 'glyma' = NA, 'desc' = NA)
+  }else{
+    summ <- geneSummary(gene)
+    temp <- data.frame('gene_name' = gene, 'glyma' = summ$otheraliases, 'desc' = summ$description)
+    }
+  df <- rbind(df, temp)
+}
+
+write.csv(df, '2022Dec21_GlymaAnnotations.csv')
 ```
