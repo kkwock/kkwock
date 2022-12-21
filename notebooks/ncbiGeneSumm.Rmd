@@ -1,0 +1,34 @@
+---
+title: "Get the Gene Summary from NCBI Gene DB"
+output: html_document
+---
+
+```{r}
+# install via CRAN
+#install.packages("rentrez")
+
+# Function
+geneSummary <- function(x){
+  library(rentrez)
+  # searches through NCBI gene db
+  r_search <- entrez_search(db="gene", term=x) 
+  
+  # takes the UID of the first search input
+  summ <- entrez_summary(db='gene', id=r_search$ids[1])
+}
+
+
+#example gene name
+gene <- 'LOC100800175' 
+
+# Get Summary of Gene 
+summ <- geneSummary(gene)
+
+# Description
+summ$description
+```
+
+```{r}
+# GLYMA name
+summ$otheraliases
+```
