@@ -4,7 +4,7 @@ I do science in **Bay Area, CA**.
 
 #### Currently...
 - 🧬 **M.S. Bioinformatics** at NYU
-- 🌱 Learning **Biostatistics**
+- 🌱 Learning **Machine Learning**
 - 👩🏻‍💻 Working on various projects
 
 
