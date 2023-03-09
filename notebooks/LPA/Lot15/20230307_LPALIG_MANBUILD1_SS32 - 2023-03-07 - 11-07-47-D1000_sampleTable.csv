@@ -1,0 +1,27 @@
+Well,Conc. [ng/µl],Sample Description,Alert,Observations
+EL1,20.3,Electronic Ladder,,Ladder
+A1,0.470,LPAManualBuild1_Hypo,,
+B1,0.515,LPAManualBuild1_Hypo,,
+C1,0.570,LPAManualBuild1_Hypo,,
+D1,0.583,LPAManualBuild1_Hypo,,
+E1,0.640,LPAManualBuild1_Hypo,!,Peak out of Sizing Range
+F1,0.586,LPAManualBuild1_Hypo,,
+G1,0.545,LPAManualBuild1_Hypo,,
+H1,0.550,LPAManualBuild1_Hypo,,
+A2,0.591,LPAManualBuild1_Res,,
+B2,0.609,LPAManualBuild1_Res,!,Peak out of Sizing Range
+C2,0.552,LPAManualBuild1_Res,,
+D2,0.532,LPAManualBuild1_Res,,
+E2,0.587,LPAManualBuild1_Res,,
+F2,0.566,LPAManualBuild1_Res,,
+G2,0.578,LPAManualBuild1_Res,,
+H2,0.620,LPAManualBuild1_Res,,
+EL2,20.3,Electronic Ladder,,Ladder
+A3,0.530,LPAManualBuild1_Hyper,,
+B3,0.523,LPAManualBuild1_Hyper,,
+C3,0.588,LPAManualBuild1_Hyper,,
+D3,0.547,LPAManualBuild1_Hyper,!,Peak out of Sizing Range
+E3,0.517,LPAManualBuild1_Hyper,,
+F3,0.517,LPAManualBuild1_Hyper,,
+G3,0.560,LPAManualBuild1_Hyper,,
+H3,0.558,LPAManualBuild1_Hyper,,
