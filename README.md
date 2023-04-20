@@ -12,7 +12,7 @@ I do science in **Bay Area, CA**.
 - 👩🏻‍🔬 **B.S. Microbiology** at UCDavis & **M.S. Molecular Biology** at CSU East Bay
 - 🏢 Bioinformatic QC Tool Developer at **Guardant Health**
 - ⚙️ I use daily: `R`, `python`
-- ⚡ Fun fact: I have a pet Hedgehog and Siberian Husky. 
+- ⚡ Hobbies: Photography & plant stuff
 
 <!--
 **kkwock/kkwock** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
