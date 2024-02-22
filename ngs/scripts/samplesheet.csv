@@ -1,0 +1,5 @@
+patient,sample,lane,fastq_1,fastq_2
+patient_NA18627,sample_NA18627,L001,/scratch/work/courses/BI7653/hw2.2024/ERR240369_1.filt.fastq.gz,/scratch/work/courses/BI7653/hw2.2024/ERR240369_2.filt.fastq.gz
+patient_HG00149,sample_HG00149,L002,/scratch/work/courses/BI7653/hw2.2024/ERR156634_1.filt.fastq.gz,/scratch/work/courses/BI7653/hw2.2024/ERR156634_2.filt.fastq.gz
+patient_HG00243,sample_HG00243,L003,/scratch/work/courses/BI7653/hw2.2024/ERR162846_1.filt.fastq.gz,/scratch/work/courses/BI7653/hw2.2024/ERR162846_2.filt.fastq.gz
+patient_HG00151,sample_HG00151,L004,/scratch/work/courses/BI7653/hw2.2024/SRR766045_1.filt.fastq.gz,/scratch/work/courses/BI7653/hw2.2024/SRR766045_2.filt.fastq.gz
