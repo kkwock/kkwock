@@ -1,0 +1,606 @@
+---
+generator: pandoc
+title: ngs_week5_2024.knit
+viewport: width=device-width, initial-scale=1
+---
+
+::: {.container-fluid .main-container}
+::: {#header}
+:::
+
+::: {#next-generation-sequence-analysis-homework-week-5-2024 .section .level3}
+### Next Generation Sequence Analysis Homework Week 5, 2024
+
+In this assignment, you will learn about filtering of low quality SNPs
+with Variant Quality Score Recalibration approach, imputation in low
+coverage whole genome sequencing applications, and will perform
+imputation using the new GLIMPSE2 package.
+
+::: {#assignment-objective .section .level4}
+#### Assignment Objective
+
+After completing the assignment, students will understand key concepts
+in filtering SNP data from NGS workflows, be able to subset a SNP
+callset in VCF, and will have experience performing imputation on a low
+coverage (1X) sequencing dataset.
+:::
+
+::: {#completing-your-assignment .section .level4}
+#### Completing your assignment
+
+Your answers to multiple choice questions can be entered via the
+"Quiz"-\>"Assignment 5A (2024)" link on Brightspace. You can upload
+required files (a) job script from Q1.8 and acc_plot.png from Q2.4 to
+"Assignments"-\>"Assignment 5B (2024)".
+:::
+
+::: {#about-the-data .section .level4}
+#### About the data
+
+This week you will work with VCFs produced by the Sarek haplotypecaller
+joint-genotyping workflow (from Week 4) and will perform imputation on a
+downsampled sampled BAM from the 1000 genomes project.
+:::
+
+::: {#additional-readings .section .level4}
+#### Additional readings
+
+Biobank scale projects: All of Us (U.S.): All of Us Investigators,
+Nature Feb, 2024 <https://www.nature.com/articles/s41586-023-06957-x>\
+UK Biobank (U.K.): <https://www.ukbiobank.ac.uk/>
+:::
+
+::: {#task-1-the-vcf-format-and-selecting-variants-that-passed-the-vqsr-based-sensitivity-filter .section .level4}
+#### Task 1: The VCF format and selecting variants that passed the VQSR-based sensitivity filter
+
+The final outputs of the haplotypecaller joint-genotyping workflow in
+the Sarek pipeline from Week 4 was two Variant Call Format (VCF) files
+with single nucleotide polymorphism (SNP) and insertion deletion (indel)
+calls for the four low coverage human samples.
+
+You can find both files `joint_germline.vcf.gz` and
+`joint_germline_recalibrated.vcf.gz` in your Week 4 outputs in the
+directory where you ran Sarek
+`res/variant_calling/haplotypecaller/joint_variant_calling/`
+
+If you no longer have the two VCFs, you can find copies of them at
+`/scratch/work/courses/BI7653/hw5.2024`.
+
+A few keys observations:
+
+-   The desired two output VCFs have genotypes for all samples at each
+    SNP or indel site\
+-   The VCFs only have sites that are variable in these four samples
+    (i.e., invariant or "monomorphic" sites are not in the file).\
+-   Both files have all the raw variant calls--low quality variants that
+    are commonly reported by most variant callers **have not been
+    removed**
+
+The second point warrants some explanation. Isn't the point of whole
+genome sequencing (WGS) to obtain the entire genome sequence? For most
+short read-based WGS applications (e.g., Genome-wide Association
+Studies), a "variants-only" VCF is of primary interest because there is
+no need to consider the invariant sites which are assumed to either
+match the reference genome or, possibly, have had insufficient data to
+confidently call a variant. However, there are some instances where it
+is desirable to output an "all sites" VCF where the genotype at all
+positions in the reference genome are reported. The GATK Haplotypecaller
+(e.g., implemented by Sarek) can be configured to output such a VCF,
+although this is a rare use case. One such example is in population
+genomics where quantifying levels of genetic diversity and other
+properties of populations requires knowledge of whether a site is
+invariant because it is truly monomorphic or because it has insufficient
+information to call it polymorphic.
+
+The third point above concerns filtering of variants, which must be
+considered carefully by data analysts. To begin, review page 6
+(concerning filter descriptions in the VCF header) and page 9
+(concerning the application of filter tags to the FILTER column of
+individual variant records) of the VCF specification
+<https://samtools.github.io/hts-specs/VCFv4.3.pdf>.
+
+Review the two multi-sample VCFs produced by Sarek haplotypecaller
+joint-genotyping workflow and answer the following question.
+
+Tip: when using `less` to view a file, you may search the file for a
+word by typing `/<word to search for>`. After the first match is found,
+you may then enter 'n' (i.e., next) to find the next match. In the
+variant records that follow, notice that all positions in the genome are
+not represented. Another thing to notice is that in columns 10-13 are
+sample-specific information including the genotype at each site.
+
+``` bash
+gunzip -c joint_germline_recalibrated.vcf.gz | less # try searching for the last line of the header using '/CHROM' and then inspect the variant lines after using down arrow
+```
+
+**Q1.1 Which of the following best describes the difference in the
+FILTER column between the two VCFs? Select all that apply \[ 1 point
+\]**
+
+a.  joint_germline.vcf.gz has had filters applied to the FILTER column,
+    joint_germline_recalibrated.vcf.gz has not\
+b.  joint_germline_recalibrated.vcf.gz has had filters applied to the
+    FILTER column, joint_germline.vcf.gz has not\
+c.  joint_germline.vcf.gz has had low quality variants (those that do
+    not pass filters) removed\
+d.  joint_germline_recalibrated.vcf.gz\
+e.  neither files have had low quality variants removed
+
+Variant Quality Score Recalibration (VQSR) was introduced in the Week 4
+pre-recorded videos with additional details particularly about the
+concept of Variants Quality Score Log Odds (VQSLOD) (the log odds that
+the SNP is true vs. false) and the sensitivity tranche concept in last
+week's live session.
+
+Additional details are here:
+<https://gatk.broadinstitute.org/hc/en-us/articles/360035531612-Variant-Quality-Score-Recalibration-VQSR>
+
+Its important to recognize that the VQSR approach is preferred over hard
+filtering, or 'thresholding', alternatives that are ad hoc and difficult
+to evaluate rigourously
+<https://gatk.broadinstitute.org/hc/en-us/articles/360035890471-Hard-filtering-germline-short-variants>.
+If you are analyzing non-model organism data you will most likely have
+to use hard filtering. If you are working with humans or other model
+genetic organisms with gold standard SNP databases, then you will want
+to adopt the VQSR approach.
+
+**Q1.2 Which of the following are true statements with respect to the
+sensitivity tranche approach of GATK. Select all that apply.\[ 1 point
+\].**
+
+a.  99.9% of all true SNPs are expected to be in the 99.9% sensitivity
+    tranche
+b.  99.9% of all false negative SNPs are expected to be in the 99.9%
+    sensitivity tranche
+c.  99.9% of all false positive SNPs are expected to be in the 99.9%
+    sensitivity tranche
+d.  increassing the sensitivity above 99.9% would increase the number of
+    false positives
+e.  increasing the sensitivity above 99.9% would decrease the number of
+    false positives
+
+**Q1.3 Review the first two variants, rs546169444 and rs62635297 ("rs"
+refers to the Reference SNP id) in the recalibrated VCF file from the
+Sarek output here:
+`/scratch/work/courses/BI7653/hw5.2024/joint_germline_recalibrated.vcf.gz`.
+Note the FILTER column and the VQSLOD attribute in the INFO column.
+Which of the following describes these two variants. Select the single
+best answer \[ 1 point \]**
+
+a.  rs546169444 passed filter and has a VQSLOD greater than the VQSLOD
+    score at rs62635297\
+b.  rs546169444 passed filter and has a VQSLOD less than the VQSLOD
+    score at rs62635297\
+c.  rs62635297 passed filter and has a VQSLOD greater than the VQSLOD
+    score at rs546169444\
+d.  rs62635297 passed filter and has a VQSLOD less than the VQSLOD score
+    at rs546169444
+
+The transition:transversion (ts:tv) ratio provides a means of
+differentiating set of SNPs with different error rates. If you are
+unfamiliar with transition and transversion classes of mutation, revew
+that here:
+
+The basis for this is that in most organisms, including humans, the
+ts:tv ratio is approximately 2:1 (or as high as 3:1 in protein-coding
+exons). However, there are twice as many transversion mutation types
+than transition, and the expectation for the ts:tv is therefore 1:2
+(assuming a random mutation process). Since machine artifacts and other
+sources of error are expected to introduce mutations more or less
+randomly, classes of SNPs enriched for false positives are expected to
+have a lower ts:tv.
+
+Sarek runs vcftools <https://vcftools.github.io/index.html> to summarize
+the ts:tv in classes of SNPs with different tags in the FILTER column in
+file `joint_germline_recalibrated.FILTER.summary`. This file is located
+in your Week 4 Sarek pipeline results
+`res/reports/vcftools/haplotypecaller/joint_variant_calling` or in the
+course directory at `/scratch/work/courses/BI7653/hw5.2024`).
+
+**Q1.4 Which of the following best describes the pattern of ts:tv in
+SNPs passing filter ("PASS") versus SNPs outside the 99% sensitivity
+tranche? Select the single best answer \[ 1 point \]**
+
+a.  The ts:tv is approximately 2 in both PASS and the SNPs that failed
+    filter\
+b.  The ts:tv is approximately 2 in PASS, and 0.5 in SNPs that failed
+    filter\
+c.  The ts:tv is approximately 2 in PASS, and 1.5 in SNPs that failed
+    filter\
+d.  The ts:tv is approximately 3 in PASS, and 1 in SNPs that failed
+    filter
+
+**Q1.5 Is the pattern in the previous question consistent with a lower
+error rate in SNPs that passed filter? \[ 1 point \]**
+
+a.  True\
+b.  False
+
+**Q1.6 What is the primary reason why in most organisms with
+re-sequencing data it is impossible perform VQSR to identify low quality
+SNPs for removal from a call set. Select the single best answer \[ 1
+point \]?**
+
+a.  most organisms have repetitive genomes and reads cannot be
+    confidently mapped\
+b.  most organisms have low quality reference genomes and positional
+    coordinates of SNPs are unknown\
+c.  most organisms have a transition:transversion ration of 2:1\
+d.  most organisms do not have a truth call set (i.e., "gold-standard
+    database") of known SNPs
+
+The final step required before analysis of the recalibrated VCF is to
+extract SNPs only (i.e., exclude indels) and remove variants that did
+not pass the filtering process (i.e., do not have "PASS" in the FILTER
+column). This can be performed with the SelectVariants tool in the GATK.
+
+Devise a SelectVariants command line that will keep only SNPs and only
+those SNPs that pass filter. You can use the documentation page here:
+<https://gatk.broadinstitute.org/hc/en-us/articles/13832694334235-SelectVariants>
+
+Note: You can use the example under "Select SNPs" but you will need to
+add an `--exclude-filtered` option (see documenation) to remove SNPs
+that failed the filtering protocol.
+
+Create a slurm job that will run your SelectVariants command. Load the
+most recent GATK module on the HPC and **execute your command on the VCF
+here
+`scratch/work/courses/BI7653/hw5.2024/joint_germline_recalibrated.vcf.gz`**.
+Your command should output a new VCF to your `/scratch`.
+
+The human reference genome fasta used in the Sarek pipeline is required
+for your command. It is located in
+`/scratch/work/courses/BI7653/hw4.2024/sarek/GATKBundle/`
+
+When you are ready, execute your script using `sbatch`.
+
+**Q1.7 How many SNPs are there in your final analysis ready VCF? \[ 1
+point \]**
+
+a.  1,343,452\
+b.  1,359,864\
+c.  1,368,304\
+d.  1,371,717
+
+**Q1.8 Save your job script for submission to Brightspace at the
+completion of your assignment \[ 4 points \]**
+
+::: {#task-2-glimpse2-imputation-of-missing-genotypes-in-low-coverage-datasets .section .level5}
+##### Task 2: GLIMPSE2 imputation of missing genotypes in low coverage datasets
+
+Whole genome sequencing (WGS) using short read technologies
+traditionally requires high coverage (i.e., \>20X) to accurately call
+genotypes (i.e., to infer whether an individual is homo- or heterozygous
+at each position in the genome). Sequencing at this depth is expensive.
+Recently, there has been a paradigm shift where WGS has been conducted
+at biobank scale using low coverage data and then using computational
+imputation to return accurate genotypes despite the low coverage.
+
+What is imputation in this context? Imputation is the process of filling
+in missing genotypes or improving low quality genotype calls. The main
+approach is to use information from the correlations among genotypes at
+closely linked sites (i.e., linkage disequilibrium) in a reference panel
+such as HapMap or 1000 Genomes to predict unknown genotypes in low
+coverage samples. The correlations among sites is inferred from large
+reference populations in which the phase of alleles on a chromosome has
+been established (i.e., the DNA sequence of both haplotypes is known for
+each of the 22 human autosomes). Knowledge of the frequency of these
+haplotypes in reference populations allows low quality or missing
+genotypes to be inferred probabilistically in samples that are not part
+of the reference set.
+
+Using a trivial (but also very possible) example, consider the situation
+where an allele A at position X is always found on the same physical
+chromosome molecule as a C at a tightly linked position Y and a G at
+position X is always associated with a T at position Y in a reference
+population. Now consider a low coverage individual not in the reference
+set. If this individual is an A/G heterozygote at position X, then it is
+highly likely that a missing genotype call at position Y is
+heterozygous, G/T, provided that the individual is of similar genetic
+ancestry as the reference population.
+
+Imputation was initially used primarily in Genome-wide Association
+Studies (GWAS) using genotyping array ('SNP Chip') data. This allows
+genotype data to be predicted even for SNP loci that are not on the
+genotyping array thereby increasing the density of marker loci and
+improving fine-mapping. In NGS, imputation is similarly used to infer
+genotypes at untyped sites in low coverage sequencing datasets.
+
+Another important concept is that imputation produces probabilistic
+genotype predictions. It is never know with certainty what genotype an
+individual has. Instead, we have a probability that an individual is
+0/0, 0/1, or 1/1. From this we can calculate the dosage--the expected
+number of copies of allele 1. This probabilistic value can then be
+included in linear models in Genome-wide Association studies directly,
+thereby taking uncertaintly in genotype into account when mapping
+traits.
+
+GLIMPSE is a software developed by a team at the University of Lausanne
+(Switzerland) (Rubinacci et al. 2021 Nature Genetics
+<https://www.nature.com/articles/s41588-020-00756-0>) that performs
+imputation on low coverage data. See:
+<https://www.illumina.com/science/genomics-research/articles/boosting-variant-calling-performance-with-DRAGEN-and-IRPv1-for-imputation.html>).
+More recently, the same team published a method that accurately imputes
+genotypes in low coverage genome sequences at a biobank scale by
+implementing a number of upgrades to computational efficiency (Rubinacci
+et al. Nature Genetics 2023
+<https://doi.org/10.1038/s41588-023-01438-3>). This has been released in
+a software package called GLIMPSE2 and is being incorporated into an
+nf-core pipeline called phaseimpute (currently under development:
+<https://nf-co.re/phaseimpute/dev>).
+
+Why should we care? Imputation is a powerful tool that could
+dramatically expand the use of WGS in precision and personalized
+medicine. It allows genomes to be sequenced at lower coverage, thus
+lowering costs, and has enabled both the expansion of biobank datasets
+and application of clinical sequencing to larger numbers of patients. An
+immediate benefit of accurate genotypes in large scale projects like the
+UK Biobank or All of Us (U.S.) is that models of polygenic disease can
+be developed from GWAS data and the risk of polygenic disease can be
+accurately predicted in the clinic. The first ever report that utilizes
+Biobank scale data to predict the risk of polygenic disease from genome
+sequence data was published in 2018 by a research team at Harvard
+Medical School, MIT, and Massachusetts General Hospital (Khera et
+al. 2018, Nature Genetics <https://doi.org/10.1038/s41588-018-0183-z>).
+Therefore, improved imputation of low coverage data would help bring to
+fruition the promise of personalized medicine.
+
+**Q2.1 Which of the following best describes the principle by which
+missing genotypes can be imputed in sequencing data? \[ 1 point \]?**
+
+a.  imputation is performed by replacing the missing genotype with the
+    most probable genotype based on phased haplotypes in an
+    ancestry-matched reference population\
+b.  imputation is performed by assuming Hardy-Weinberg equilibrium and
+    using estimates of alleles frequencies to predict the missing
+    genotype\
+c.  imputation is performed by replacing the missing genotype call with
+    the most common genotype at a locus in an ancestry-matched
+    population\
+d.  imputation is performed using a machine learning approach that
+    predicts the genotype from prior knowledge of disease status
+
+In practice there are significant challenges with phasing and imputation
+in low coverage data.
+
+First and foremost, low frequency alleles are the most difficult to
+impute and imputation accuracy is much lower at sites with variants that
+are at low frequency in the human population. Unfortunately, these are
+the mutations that are most likely to be causal for human disease.
+
+Another challenge is that it is computationally expensive (both long
+compute times and resources) to impute large numbers of samples
+(hundreds of thousands to millions) typical of biobank scale projects.
+Still another challenge is that reference populations are at present
+primarily restricted to individuals of European ancestry and thus
+accurate imputation is primarily limited to this population.
+
+In this task, you will execute GLIMPSE2 to impute missing genotypes from
+a downsampled individual (NA12878) from the 1000 Genomes Project.
+
+Before beginning, use `srun` on the HPC to switch from login to compute
+node then clone the github repository for GLIMPSE2 as follows:
+
+``` bash
+git init
+git clone https://github.com/odelaneau/GLIMPSE
+```
+
+The GLIMPSE2 tutorial is designed to be run from within the `tutorial/`
+directory. The first step is to create soft links to the GLIMPSE2
+binaries (executables/programs) that have been created for you in this
+directory `/scratch/work/courses/BI7653/hw5.2024/GLIMPSE2/bin`.
+
+``` bash
+cd GLIMPSE/tutorial
+mkdir bin
+cd bin
+ln -s /scratch/work/courses/BI7653/hw5.2024/GLIMPSE2/bin/GLIMPSE2_chunk_static GLIMPSE2_chunk
+ln -s /scratch/work/courses/BI7653/hw5.2024/GLIMPSE2/bin/GLIMPSE2_concordance_static GLIMPSE2_concordance
+ln -s /scratch/work/courses/BI7653/hw5.2024/GLIMPSE2/bin/GLIMPSE2_ligate_static GLIMPSE2_ligate
+ln -s /scratch/work/courses/BI7653/hw5.2024/GLIMPSE2/bin/GLIMPSE2_phase_static GLIMPSE2_phase
+ln -s /scratch/work/courses/BI7653/hw5.2024/GLIMPSE2/bin/GLIMPSE2_split_reference_static GLIMPSE2_split_reference
+ls -al # including "l" option allows you to see the symbolic link
+```
+
+The 1000 genomes reference panel (chromosome 22 only) is provided as a
+phased VCF. Your instructor downloaded it for you. Return to your the
+`tutorial/` directory and copy the 1000 Genomes project reference panel
+and its index file to this directory. Note in all of the `cp` commands
+below the `.` is the destination directory and is shorthand for the
+present working directory.
+
+``` bash
+cd ..
+pwd # confirm you are in tutorial directory
+cp /scratch/work/courses/BI7653/hw5.2024/GLIMPSE2/CCDG_14151_B01_GRM_WGS_2020-08-05_chr22.filtered.shapeit2-duohmm-phased.vcf.gz .
+cp /scratch/work/courses/BI7653/hw5.2024/GLIMPSE2/CCDG_14151_B01_GRM_WGS_2020-08-05_chr22.filtered.shapeit2-duohmm-phased.vcf.gz.tbi .
+```
+
+Next, the workflow uses `bcftools` a popular toolkit for manipulating
+VCF files. This step removes NA12878 and family members from the
+reference population VCF and retains only biallelic SNPs. It then
+creates a sites-only VCF (no genotypes) which is used here to speed up
+the imputation process (a standard imputation run would use phased
+reference panel data). The new files are output to a new directory
+`reference_panel`.
+
+Copy the shell scripts for this exercise to the `tutorial/` directory.
+
+``` bash
+cp /scratch/work/courses/BI7653/hw5.2024/GLIMPSE2/step*sh . 
+```
+
+Then run the first step the first script. This takes about 5 to 10
+minutes. This is a pre-processing step that removes the focal sample
+(the one you will impute genotypes from a downsampled BAM) and its
+relatives from the reference panel.
+
+``` bash
+sbatch step2.sh
+```
+
+When the step2.sh job is complete, proceed to the next step where
+GLIMPSE2 scans a chromosome and creates a set of intervals ('chunks')
+where imputation will be performed separately. The output file of this
+step is `chunks.chr22.txt`. This takes a minute or so.
+
+``` bash
+sbatch step3.sh 
+```
+
+The workflow then iterates over the chunks and splits the reference
+panel VCF into pieces. In the process, it converts VCF into a sparse
+matrix binary formatted file for each chunk (for efficient data
+processing). Efficient storage of reference panel data is one of the
+innovations that GLIMPSE2 uses to speed up computation necessary for
+imputation on biobank scale data.
+
+This step takes about a minute.
+
+``` bash
+sbatch step4.sh 
+```
+
+All of the above concerned processing of the reference panel. You now
+have a reference panel split into segments in a format suitable for the
+GLIMPSE2 imputation algorithm. You will now impute genotypes of a low
+coverage sample. The genome of NA12878 was downsampled to 1X coverage.
+The phase and impute step will both phase (determine haplotypes) and
+impute (call genotypes) at all SNP positions in the reference panel.
+
+A key thing to note in `step5.sh` is the GLIMPSE2_phase command. Note
+that the input is a BAM file. Tools like GLIMPSE2 calculate genotype
+likelihoods (the probability of the reads given the genotype) directly
+from raw reads (like a SNP caller). Further these GLIMPSE enhances
+haplotype inference by utilizing the phase information in sequencing
+reads ("phase informative reads"). If a read (or read pair) spans two
+heterozygous sites in the 1X coverage genome then the phase can be
+inferred directly from the reads themselves.
+
+Now execute the phasing and imputation step which will output one binary
+representation of VCF (BCF) per chunk with phased and imputed genotypes
+for the sample of interest. This takes about 10 minutes.
+
+``` bash
+sbatch step5.sh
+```
+
+Now stitch the chunks together to form a chromosome-level phased and
+imputed output BCF.
+
+``` bash
+sbatch step6.sh 
+```
+
+Now, run the last step to calculate the genotype accuracy at different
+minor allele frequencies bins (in the reference panel) in the 1X sample
+and that in the original high coverage sample.
+
+``` bash
+sbatch step7.sh 
+```
+
+Finally, `cd` into the `plot` directory and perform the following.
+
+``` bash
+# first remove existing plot that came from Github
+rm accplot.png
+
+# the script has already been made executable so you can execute directly
+./concordance_plot.py
+```
+
+This will create the accplot.png plot.
+
+To make clear the role of imputation in low coverage data, review the
+output imputed genotypes. Since BCF files are binary, we have to view
+them with bcftools view. Load the most recent bcftools module, then view
+the BCF file `NA12878_chr22_ligated.bcf` produced by your workflow in
+GLIMPSE_ligate directory.
+
+``` bash
+bcftools view NA12878_chr22_ligated.bcf | less # q to exit
+```
+
+When answering questions below, you may need to refer back to the VCF
+specification (see link above). When executing commands below, please
+also use the same `.bcf` output, but from your instructor's GLIMPSE2 run
+to ensure interpretations of results to not differ in different runs.
+The imputed output from your instructor's run is at
+`/scratch/work/courses/BI7653/hw5.2024/GLIMPSE2/NA12878_chr22_ligated.bcf`.
+
+**Q2.2 What is the genotype call (in nucleotides) for position
+chr22:10662116? \[ 1 point \]**
+
+a.  A\|A\
+b.  G\|G\
+c.  C\|C\
+d.  A\|G
+
+Now, review the 1X BAM alignment with the samtools text view program and
+determine how many reads support the genotype at position
+chr22:10662116. Execute the following command from within the
+`tutorial/` directory.
+
+``` bash
+samtools tview -p chr22:10662116 NA12878_1x_bam/NA12878.bam reference_genome/hs38DH.chr22.fa.gz # type ? to see help and type q to exit
+```
+
+**Q2.3 What is the depth of coverage at position chr22:10662116? \[ 1
+point \]**
+
+a.  0\
+b.  1\
+c.  2\
+d.  4
+
+The concept of phase is central to imputation and to many areas of in
+population genomics and genomic medicine. In Illumina short read
+sequencing, phase is not output by SNP-calling software but must be
+inferred by tools like GLIMPSE2 or other phasing + imputation
+approaches. Phased data can be recognized by the "\|" genotype
+delimiter. Consider two SNPs in a phased VCF with the following REF, ALT
+and sample genotype (GT) information:
+
+``` bash
+REF     ALT     GT
+A       T       0|1
+G       A       1|0
+```
+
+**Q2.4 What are the inferred haplotypes in the above sample? \[ 1 point
+\]?**
+
+a.  AT, GA\
+b.  AG, TA\
+c.  AA, TG\
+d.  none of the above
+
+How accurate are imputed genotype calls from 1X data? Download the
+`acc_plot.png` that you generated above. This plot shows how well the
+imputed genotype predicts the true genotype (in the same high coverage
+sample in the reference panel) as measured by r2 in different minor
+allele frequency bins, where the minor allele frequency is defined as
+the frequency of the rarer of two alleles at a biallelic SNP site in the
+reference panel.
+
+**Q2.5 If we define 90% r2 as sufficiently accurate for an application
+such as Genome-wide Association Study, then how low a minor allele
+frequency can be accurately imputed using this approach? \[ 1 point \]**
+
+a.  \~.01-.02%\
+b.  \~.1-.2%\
+c.  1-2%\
+d.  5-10%
+
+**Q2.6 Upload your acc_plot.png file to Homework 5B (2024) \[ 4 points
+\].**
+:::
+:::
+
+::: {#you-are-finished-please-review-the-completing-your-assignment-section-above-to-complete-your-assignment .section .level4}
+#### You are finished, please review the Completing your assignment section above to complete your assignment
+:::
+:::
+:::
