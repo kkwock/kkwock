@@ -4,11 +4,6 @@ title: ngs_week5_2024.knit
 viewport: width=device-width, initial-scale=1
 ---
 
-::: {.container-fluid .main-container}
-::: {#header}
-:::
-
-::: {#next-generation-sequence-analysis-homework-week-5-2024 .section .level3}
 ### Next Generation Sequence Analysis Homework Week 5, 2024
 
 In this assignment, you will learn about filtering of low quality SNPs
@@ -16,41 +11,32 @@ with Variant Quality Score Recalibration approach, imputation in low
 coverage whole genome sequencing applications, and will perform
 imputation using the new GLIMPSE2 package.
 
-::: {#assignment-objective .section .level4}
 #### Assignment Objective
 
 After completing the assignment, students will understand key concepts
 in filtering SNP data from NGS workflows, be able to subset a SNP
 callset in VCF, and will have experience performing imputation on a low
 coverage (1X) sequencing dataset.
-:::
 
-::: {#completing-your-assignment .section .level4}
 #### Completing your assignment
 
 Your answers to multiple choice questions can be entered via the
 "Quiz"-\>"Assignment 5A (2024)" link on Brightspace. You can upload
 required files (a) job script from Q1.8 and acc_plot.png from Q2.4 to
 "Assignments"-\>"Assignment 5B (2024)".
-:::
 
-::: {#about-the-data .section .level4}
 #### About the data
 
 This week you will work with VCFs produced by the Sarek haplotypecaller
 joint-genotyping workflow (from Week 4) and will perform imputation on a
 downsampled sampled BAM from the 1000 genomes project.
-:::
 
-::: {#additional-readings .section .level4}
 #### Additional readings
 
 Biobank scale projects: All of Us (U.S.): All of Us Investigators,
 Nature Feb, 2024 <https://www.nature.com/articles/s41586-023-06957-x>\
 UK Biobank (U.K.): <https://www.ukbiobank.ac.uk/>
-:::
 
-::: {#task-1-the-vcf-format-and-selecting-variants-that-passed-the-vqsr-based-sensitivity-filter .section .level4}
 #### Task 1: The VCF format and selecting variants that passed the VQSR-based sensitivity filter
 
 The final outputs of the haplotypecaller joint-genotyping workflow in
@@ -110,7 +96,7 @@ not represented. Another thing to notice is that in columns 10-13 are
 sample-specific information including the genotype at each site.
 
 ``` bash
-gunzip -c joint_germline_recalibrated.vcf.gz | less # try searching for the last line of the header using '/CHROM' and then inspect the variant lines after using down arrow
+gunzip -c /scratch/kk4764/ngs/nextflow/res/variant_calling/haplotypecaller/joint_variant_calling/joint_germline_recalibrated.vcf.gz | less 
 ```
 
 **Q1.1 Which of the following best describes the difference in the
@@ -265,7 +251,7 @@ d.  1,371,717
 **Q1.8 Save your job script for submission to Brightspace at the
 completion of your assignment \[ 4 points \]**
 
-::: {#task-2-glimpse2-imputation-of-missing-genotypes-in-low-coverage-datasets .section .level5}
+
 ##### Task 2: GLIMPSE2 imputation of missing genotypes in low coverage datasets
 
 Whole genome sequencing (WGS) using short read technologies
